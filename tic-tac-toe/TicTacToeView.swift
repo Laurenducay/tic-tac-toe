@@ -11,16 +11,32 @@ struct TicTacToeView: View {
     var body: some View {
         NavigationStack {
             
-            VStack {
-                Spacer()
-                grid
+            VStack(spacing: 0) {
                 Text("Score")
                     .fontWeight(.bold)
                     .font(.largeTitle)
                     .foregroundColor(.blue)
-                    .padding(.top)
                 scoreKeeper
                     .padding(.top)
+                grid
+                    .padding(.top)
+                HStack {
+                    RoundedRectangle(cornerRadius: 9)
+                        .frame(width: 150, height: 50)
+                        .foregroundColor(.blue.opacity(0.5))
+                        .padding(.top)
+                        .overlay {
+                            Text("Restart")
+                        }
+                    RoundedRectangle(cornerRadius: 9)
+                        .frame(width: 150, height: 50)
+                        .foregroundColor(.blue.opacity(0.5))
+                        .padding(.top)
+                        .overlay {
+                            Text("Pause")
+                        }
+                }
+
             }
             .navigationTitle(Text("Tic Tac Toe"))
         }
