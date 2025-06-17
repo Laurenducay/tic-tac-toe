@@ -52,6 +52,11 @@ struct homePageView: View {
                 .foregroundStyle(.white.opacity(0.1))
                 .rotationEffect(Angle(degrees: x.rotation))
                 .position(x: x.position.x, y: x.position.y)
+                .offset(y: x.onAppear ? x.offset : 0)
+                .animation(.easeInOut(duration: x.animation), value: x.onAppear)
+                .onAppear {
+                    x.onAppear
+                }
         }
         ForEach(viewModel.randomOs) { o in
             Text("O")
