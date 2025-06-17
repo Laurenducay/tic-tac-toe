@@ -8,24 +8,44 @@
 
 import SwiftUI
 
-struct designPatternX: Identifiable {
+class designPatternX: Identifiable, ObservableObject {
     let id = UUID()
     let size: CGFloat
-    let rotation: Double
-    let position: CGPoint
-    let offset: CGFloat
-    let animation: CGFloat
-    let onAppear: Bool
+    @Published var rotation: Double
+    let animationDuration: Double
+    @Published var positionOffset: CGSize
+    
+    init(
+        size: CGFloat = 100,
+        rotation: Double = 0,
+        animationDuration: Double = 5,
+        position: CGPoint) {
+            self.size = size
+            self.rotation = rotation
+            self.animationDuration = animationDuration
+            self.positionOffset = CGSize(width: position.x - UIScreen.main.bounds.width/2,
+                                         height: position.y - UIScreen.main.bounds.height/2)
+        }
 }
 
-struct designPatternO: Identifiable {
+class designPatternO: Identifiable, ObservableObject {
     let id = UUID()
     let size: CGFloat
-    let rotation: Double
-    let position: CGPoint
-    let offset: CGFloat
-    let animation: CGFloat
-    let onAppear: Bool
+    @Published var rotation: Double
+    let animationDuration: Double
+    @Published var positionOffset: CGSize
+    
+    init(
+        size: CGFloat = 100,
+        rotation: Double = 0,
+        animationDuration: Double = 5,
+        position: CGPoint) {
+            self.size = size
+            self.rotation = rotation
+            self.animationDuration = animationDuration
+            self.positionOffset = CGSize(width: position.x - UIScreen.main.bounds.width/2,
+                                   height: position.y - UIScreen.main.bounds.height/2)
+    }
 }
 
 class TicTacToeViewModel: ObservableObject {
@@ -49,33 +69,69 @@ class TicTacToeViewModel: ObservableObject {
         [(0, 2), (1, 1), (2, 0)]
     ]
     
-    init() {
-        randomXs = (0..<20).map { _ in
-            designPatternX(
-                size: CGFloat.random(in: 50...150),
-                rotation: Double.random(in: 0...360),
-                position: CGPoint(
-                    x: CGFloat.random(in: 0...800),
-                    y: CGFloat.random(in: 0...800)
-                ),
-                offset: CGFloat.random(in: 0...100),
-                animation: CGFloat.random(in: 1...5),
-                onAppear: true
-                
-            )
+    func generateXs() {
+        for _ in 0..<5 {
+            let randomXPosition = CGPoint(
+                x: CGFloat.random(in: 0...UIScreen.main.bounds.width),
+                y: CGFloat.random(in: 0...UIScreen.main.bounds.height)
+                )
+            let size = CGFloat.random(in: 40...120)
+            let duration = Double.random(in: 6...12)
+            let rotation = Double.random(in: 0...360)
+            
+            let newX = designPatternX(size: size, rotation: rotation, animationDuration: duration, position: randomXPosition)
+            randomXs.append(newX)
         }
-        randomOs = (0..<20).map { _ in
-            designPatternO(
-                size: CGFloat.random(in: 50...150),
-                rotation: Double.random(in: 0...360),
-                position: CGPoint(
-                    x: CGFloat.random(in: 0...800),
-                    y: CGFloat.random(in: 0...800)
-                ),
-                offset: CGFloat.random(in: 0...100),
-                animation: CGFloat.random(in: 1...5),
-                onAppear: true
-            )
+    }
+    
+    func generateOs() {
+        for _ in 0..<5 {
+            let randomOPosition = CGPoint(
+                x: CGFloat.random(in: 0...UIScreen.main.bounds.width),
+                y: CGFloat.random(in: 0...UIScreen.main.bounds.height)
+                )
+            let size = CGFloat.random(in: 40...120)
+            let duration = Double.random(in: 6...12)
+            let rotation = Double.random(in: 0...360)
+            
+            let newO = designPatternO(size: size, rotation: rotation, animationDuration: duration, position: randomOPosition)
+            randomOs.append(newO)
+        }
+    }
+    
+    func animateOs(id: UUID) {
+        if let index = randomOs.firstIndex(where: { $0.id == id }) {
+            let duration = randomOs[index].animationDuration
+            withAnimation(.easeInOut(duration: duration).repeatForever(autoreverses: true)) {
+                randomOs[index].positionOffset.height -= 50
+                randomOs[index].rotation += 180
+            }
+        }
+    }
+    
+    func animateXs(id: UUID) {
+        if let index = randomXs.firstIndex(where: { $0.id == id }) {
+            let duration = randomXs[index].animationDuration
+            withAnimation(.easeInOut(duration: duration).repeatForever(autoreverses: true)) {
+                randomXs[index].positionOffset.height -= 50
+                randomXs[index].rotation += 180
+            }
+        }
+    }
+    
+    func animateAll() {
+        for x in randomXs {
+            withAnimation(.easeInOut(duration: x.animationDuration).repeatForever(autoreverses: true)) {
+                x.positionOffset.height -= 50
+                x.rotation += 180
+            }
+        }
+
+        for o in randomOs {
+            withAnimation(.easeInOut(duration: o.animationDuration).repeatForever(autoreverses: true)) {
+                o.positionOffset.height -= 50
+                o.rotation += 180
+            }
         }
     }
     
@@ -93,17 +149,19 @@ class TicTacToeViewModel: ObservableObject {
     }
     
     func playGame(row: Int, column: Int) {
-        if board[row][column] == "" {
-            board[row][column] = currentPlayer
-            
-            if checkWin(for: currentPlayer) {
-                alertMessage = "\(currentPlayer) wins!"
-                showAlert = true
-            } else if board.joined().allSatisfy({$0 != ""}){
-                alertMessage = "It's a draw!"
-                showAlert = true
-            } else {
-                currentPlayer = currentPlayer == "X" ? "O" : "X"
+        DispatchQueue.main.async {
+            if self.board[row][column] == "" {
+                self.board[row][column] = self.currentPlayer
+                
+                if self.checkWin(for: self.currentPlayer) {
+                    self.alertMessage = "\(self.currentPlayer) wins!"
+                    self.showAlert = true
+                } else if self.board.joined().allSatisfy({$0 != ""}){
+                    self.alertMessage = "It's a draw!"
+                    self.showAlert = true
+                } else {
+                    self.currentPlayer = self.currentPlayer == "X" ? "O" : "X"
+                }
             }
         }
     }
