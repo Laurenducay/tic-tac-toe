@@ -49,6 +49,8 @@ class designPatternO: Identifiable, ObservableObject {
 }
 
 class TicTacToeViewModel: ObservableObject {
+    @Published var isInGame = true
+    @Published var gameEnded = false
     @Published var showAlert = false
     @Published var alertMessage = ""
     @Published var randomXs: [designPatternX] = []
@@ -134,7 +136,7 @@ class TicTacToeViewModel: ObservableObject {
             }
         }
     }
-    
+
     func resetBoard() {
         board = Array(repeating: Array(repeating: "", count: 3), count: 3)
         currentPlayer = "X"
@@ -156,9 +158,11 @@ class TicTacToeViewModel: ObservableObject {
                 if self.checkWin(for: self.currentPlayer) {
                     self.alertMessage = "\(self.currentPlayer) wins!"
                     self.showAlert = true
+                    self.gameEnded = true
                 } else if self.board.joined().allSatisfy({$0 != ""}){
                     self.alertMessage = "It's a draw!"
                     self.showAlert = true
+                    self.gameEnded = true
                 } else {
                     self.currentPlayer = self.currentPlayer == "X" ? "O" : "X"
                 }

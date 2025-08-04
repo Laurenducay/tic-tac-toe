@@ -21,12 +21,13 @@ struct TicTacToeView: View {
                     scoreKeeper
                 }
             }
-            
+            .navigationStyle(title: "Tic Tac Toe", trailingText: nil, trailingAction: {})
         }
     }
     
-    @ViewBuilder
-    var grid: some View {
+    
+    
+    @ViewBuilder private var grid: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 9)
                 .frame(width: 360, height: 360)
@@ -51,15 +52,14 @@ struct TicTacToeView: View {
         }
     }
     
-    @ViewBuilder
-    var scoreKeeper: some View {
+    @ViewBuilder private var scoreKeeper: some View {
         HStack {
             RoundedRectangle(cornerRadius: 9)
                 .frame(width: 140, height: 100)
                 .offset(x: 185)
                 .foregroundColor(.white.opacity(0.4))
                 .overlay(Text("X :")
-                    .fontWeight(.bold)
+                    .font(.system(size: 40, weight: .bold, design: .rounded))
                     .foregroundColor(.white),
                          alignment: .leading)
                 .font(.system(size: 30))
@@ -68,15 +68,14 @@ struct TicTacToeView: View {
                 .offset(x: -185)
                 .foregroundColor(.white.opacity(0.4))
                 .overlay(Text("O :")
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                         , alignment: .center)
+                    .font(.system(size: 40, weight: .bold, design: .rounded))
+                    .foregroundColor(.white),
+                         alignment: .center)
                 .font(.system(size: 30))
         }
     }
     
-    @ViewBuilder
-    var playGame: some View {
+    @ViewBuilder private var playGame: some View {
         VStack(spacing: 20) {
             ForEach(0..<3, id: \.self) { row in
                 HStack(spacing: 20) {
@@ -96,28 +95,29 @@ struct TicTacToeView: View {
             )
         }
     }
-}
-
-struct CellView: View {
-    let value: String
-    let action: () -> Void
     
-    var body: some View {
-        ZStack {
-            Color.clear
-                .frame(width: 100, height: 100)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    action()
-                }
-            Text(value)
-                .font(.system(size: 60, weight: .bold))
-                .foregroundColor(.white)
+    struct CellView: View {
+        let value: String
+        let action: () -> Void
+        
+        var body: some View {
+            ZStack {
+                Color.clear
+                    .frame(width: 100, height: 100)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        action()
+                    }
+                Text(value)
+                    .font(.system(size: 60, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+            }
         }
     }
 }
 
-#Preview {
-    TicTacToeView()
+struct TicTacToeView_Previews: PreviewProvider {
+    static var previews: some View {
+        TicTacToeView()
+    }
 }
-
