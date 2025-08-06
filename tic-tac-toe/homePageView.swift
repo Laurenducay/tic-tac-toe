@@ -15,9 +15,13 @@ struct homePageView: View {
             ZStack {
                     LinearGradient(gradient: Gradient(colors: [.blue, .purple]), startPoint: .leading, endPoint: .trailing)
                     .ignoresSafeArea()
-                
-                generateBackgroundDesign
-                
+                AnimatedBackgroundView(
+                    Os: viewModel.randomOs,
+                    Xs: viewModel.randomXs,
+                    onAppear: {
+                        viewModel.animateAll()
+                    }
+                )
                 VStack {
                     Spacer()
                     Text("""
@@ -28,6 +32,9 @@ struct homePageView: View {
                     )
                     .font(.system(size: 75, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
+                    .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
+                    .shadow(color: Color.blue.opacity(0.3), radius: 20, x: 0, y: 0)
+                    .shadow(color: Color.purple.opacity(0.6), radius: 30, x: 0, y:0)
                     Spacer()
                     newGameButton
                 }
@@ -45,60 +52,19 @@ struct homePageView: View {
     }
     
     
-    @ViewBuilder
-    var newGameButton: some View {
+    @ViewBuilder var newGameButton: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 20)
                 .frame(width: 200, height: 50)
                 .foregroundColor(.white.opacity(0.4))
+                .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
             NavigationLink(destination: TicTacToeView()) {
                 Text("New Game")
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
+                    .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
             }
         }
-    }
-    
-    @ViewBuilder
-    var generateBackgroundDesign: some View {
-        ZStack {
-            ForEach(viewModel.randomXs) { x in
-                AnimatedXs(x: x)
-            }
-            
-            ForEach(viewModel.randomOs) { o in
-                AnimatedOs(o: o)
-            }
-        }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                viewModel.animateAll()
-            }
-        }
-    }
-}
-
-struct AnimatedOs: View {
-    @ObservedObject var o: designPatternO
-    
-    var body: some View {
-        Text("O")
-            .font(.system(size: o.size, weight: .bold, design: .rounded))
-            .foregroundStyle(.white.opacity(0.1))
-            .rotationEffect(Angle(degrees: o.rotation))
-            .offset(o.positionOffset)
-    }
-}
-
-struct AnimatedXs: View {
-    @ObservedObject var x: designPatternX
-    
-    var body: some View {
-        Text("X")
-            .font(.system(size: x.size, weight: .bold, design: .rounded))
-            .foregroundStyle(.white.opacity(0.1))
-            .rotationEffect(Angle(degrees: x.rotation))
-            .offset(x.positionOffset)
     }
 }
 
