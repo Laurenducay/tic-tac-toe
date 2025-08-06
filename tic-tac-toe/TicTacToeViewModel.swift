@@ -71,6 +71,9 @@ class TicTacToeViewModel: ObservableObject {
         [(0, 2), (1, 1), (2, 0)]
     ]
     
+    @Published var xScore: Int = 0
+    @Published var oScore: Int = 0
+    
     func generateXs() {
         for _ in 0..<5 {
             let randomXPosition = CGPoint(
@@ -150,6 +153,19 @@ class TicTacToeViewModel: ObservableObject {
         }
     }
     
+    func updateScore(for player: String) {
+        if player == "X" {
+            xScore += 1
+        } else if player == "O" {
+            oScore += 1
+        }
+    }
+    
+    func resetScore() {
+        xScore = 0
+        oScore = 0
+    }
+    
     func playGame(row: Int, column: Int) {
         DispatchQueue.main.async {
             if self.board[row][column] == "" {
@@ -159,6 +175,7 @@ class TicTacToeViewModel: ObservableObject {
                     self.alertMessage = "\(self.currentPlayer) wins!"
                     self.showAlert = true
                     self.gameEnded = true
+                    self.updateScore(for: self.currentPlayer)
                 } else if self.board.joined().allSatisfy({$0 != ""}){
                     self.alertMessage = "It's a draw!"
                     self.showAlert = true

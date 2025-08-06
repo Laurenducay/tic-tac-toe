@@ -9,6 +9,10 @@ import SwiftUI
 
 struct TicTacToeView: View {
     @StateObject var viewModel = TicTacToeViewModel()
+    @State private var showRestartAlert = false
+    @State private var showEndGameAlert = false
+    @State private var navigate = false
+    @State private var showWinnerAlert = false
     
     var body: some View {
         NavigationStack {
@@ -28,6 +32,59 @@ struct TicTacToeView: View {
                     scoreKeeper
                     footer
                         .padding(EdgeInsets(top: 100, leading: 20, bottom: 20, trailing: 20))
+                    NavigationLink(destination: homePageView(), isActive: $navigate) {
+                        EmptyView()
+                    }
+                }
+                if viewModel.showAlert {
+                    CustomAlert(
+                        title: "Game Over",
+                        message: viewModel.alertMessage,
+                        confirmTitle: "Play Again",
+                        cancelTitle: "End Game",
+                        onConfirm: {
+                            viewModel.resetBoard()
+                            viewModel.showAlert = false
+                        },
+                        onCancel: {
+                            viewModel.showAlert = false
+                        }
+                        )
+                }
+                
+                if showRestartAlert {
+                    CustomAlert(
+                        title: "Restart Game?",
+                        message: "Are you sure you want to restart the game?",
+                        confirmTitle: "Restart",
+                        cancelTitle: "Cancel",
+                        onConfirm: {
+                            viewModel.resetBoard()
+                            viewModel.resetScore()
+                            showRestartAlert = false
+                        },
+                        onCancel: {
+                            showRestartAlert = false
+                        }
+                    )
+                    .animation(.easeInOut, value: showRestartAlert)
+                }
+                if showEndGameAlert {
+                    CustomAlert(
+                        title: "End Game?",
+                        message: "Are you sure you want to end the game?",
+                        confirmTitle: "End Game",
+                        cancelTitle: "Cancel",
+                        onConfirm: {
+                            viewModel.resetScore()
+                            navigate = true
+                            showEndGameAlert = false
+                        },
+                        onCancel: {
+                            showEndGameAlert = false
+                        }
+                    )
+                    .animation(.easeInOut, value: showEndGameAlert)
                 }
             }
             .onAppear {
@@ -38,6 +95,7 @@ struct TicTacToeView: View {
                     viewModel.animateAll()
                 }
             }
+            .navigationBarBackButtonHidden(true)
             .navigationStyle(title: "Tic Tac Toe", trailingText: nil, trailingAction: {})
         }
     }
@@ -47,26 +105,27 @@ struct TicTacToeView: View {
     @ViewBuilder private var grid: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 9)
+                .stroke(Color.white.opacity(0.6), lineWidth: 2)
                 .frame(width: 360, height: 360)
                 .foregroundColor(.white.opacity(0.4))
                 .shadow(color: Color.purple.opacity(0.6), radius: 10, x: 0, y: 0)
             RoundedRectangle(cornerRadius: 9)
-                .frame(width: 2, height: 330)
+                .frame(width: 4, height: 330)
                 .offset(x: 65)
                 .foregroundColor(.white)
                 .shadow(color: Color.white.opacity(0.9), radius: 10, x: 0, y: 0)
             RoundedRectangle(cornerRadius: 9)
-                .frame(width: 2, height: 330)
+                .frame(width: 4, height: 330)
                 .offset(x: -65)
                 .foregroundColor(.white)
                 .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
             RoundedRectangle(cornerRadius: 9)
-                .frame(width: 330, height: 2)
+                .frame(width: 330, height: 4)
                 .offset(x: 0, y: 60)
                 .foregroundColor(.white)
                 .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
             RoundedRectangle(cornerRadius: 9)
-                .frame(width: 330, height: 2)
+                .frame(width: 330, height: 4)
                 .offset(x: 0, y: -60)
                 .foregroundColor(.white)
                 .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
@@ -76,23 +135,20 @@ struct TicTacToeView: View {
     
     @ViewBuilder private var scoreKeeper: some View {
         HStack {
-            RoundedRectangle(cornerRadius: 9)
-                .frame(width: 140, height: 100)
-                .offset(x: 185)
-                .foregroundColor(.white.opacity(0.4))
-                .overlay(Text("X :")
+            reusableRectangle
+                .overlay(Text("X : \(viewModel.xScore)")
                     .font(.system(size: 40, weight: .bold, design: .rounded))
-                    .foregroundColor(.white),
-                         alignment: .leading)
+                    .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
+                    .padding(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
+                    .foregroundColor(.white))
                 .font(.system(size: 30))
-            RoundedRectangle(cornerRadius: 9)
-                .frame(width: 140, height: 100)
-                .offset(x: -185)
-                .foregroundColor(.white.opacity(0.4))
-                .overlay(Text("O :")
+            Spacer()
+            reusableRectangle
+                .overlay(Text("O : \(viewModel.oScore)")
                     .font(.system(size: 40, weight: .bold, design: .rounded))
-                    .foregroundColor(.white),
-                         alignment: .center)
+                    .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
+                    .padding(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
+                    .foregroundColor(.white))
                 .font(.system(size: 30))
         }
     }
@@ -108,13 +164,6 @@ struct TicTacToeView: View {
                     }
                 }
             }
-        }
-        .alert(isPresented: $viewModel.showAlert) {
-            Alert(title: Text(viewModel.alertMessage),
-                  dismissButton: .default(Text("Play Again?")) {
-                viewModel.resetBoard()
-            }
-            )
         }
     }
     
@@ -132,12 +181,12 @@ struct TicTacToeView: View {
                 .frame(width: 160, height: 50)
                 .foregroundColor(.white.opacity(0.4))
                 .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
-            NavigationLink(destination: TicTacToeView()) {
-                Text("Restart Game")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                    .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
+            Button("Restart Game") {
+                showRestartAlert = true
             }
+            .font(.system(size: 20, weight: .bold, design: .rounded))
+            .foregroundColor(.white)
+            .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
         }
     }
     
@@ -147,14 +196,23 @@ struct TicTacToeView: View {
                 .frame(width: 160, height: 50)
                 .foregroundColor(.white.opacity(0.4))
                 .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
-            NavigationLink(destination: TicTacToeView()) {
-                Text("End Game")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                    .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
+            Button("End Game") {
+                showEndGameAlert = true
             }
+            .font(.system(size: 20, weight: .bold, design: .rounded))
+            .foregroundColor(.white)
+            .shadow(color: Color.white.opacity(0.6), radius: 10, x: 0, y: 0)
         }
     }
+    
+    @ViewBuilder var reusableRectangle: some View {
+        RoundedRectangle(cornerRadius: 9)
+            .stroke(Color.white.opacity(0.6), lineWidth: 2)
+            .frame(width: 160, height: 100)
+            .foregroundColor(.white.opacity(0.4))
+            .padding(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
+    }
+}
     
     struct CellView: View {
         let value: String
@@ -184,7 +242,6 @@ struct TicTacToeView: View {
             }
         }
     }
-}
 
 struct TicTacToeView_Previews: PreviewProvider {
     static var previews: some View {
